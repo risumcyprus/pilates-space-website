@@ -110,6 +110,13 @@ export const translations = {
       registration: "Registration number: HE 357486",
       copy: "© 2026 Pilates Space",
       policies: "Правила студии",
+      legal: [
+        { href: "/terms", title: "Условия обслуживания (Terms & Conditions)" },
+        { href: "/privacy", title: "Политика конфиденциальности (Privacy Policy)" },
+        { href: "/waiver", title: "Отказ от ответственности (Liability Waiver)" },
+        { href: "/informed-consent", title: "Информированное согласие (здоровье и занятия)" },
+        { href: "/marketing-consent", title: "Согласие на маркетинговые сообщения" },
+      ],
     },
     booking: {
       eyebrow: "PilatesSpace booking",
@@ -276,6 +283,13 @@ export const translations = {
       registration: "Registration number: HE 357486",
       copy: "© 2026 Pilates Space",
       policies: "Studio Policies",
+      legal: [
+        { href: "/terms", title: "Terms & Conditions" },
+        { href: "/privacy", title: "Privacy Policy" },
+        { href: "/waiver", title: "Liability Waiver" },
+        { href: "/informed-consent", title: "Informed Consent (Health & Exercise)" },
+        { href: "/marketing-consent", title: "Marketing Communications Consent" },
+      ],
     },
     booking: {
       eyebrow: "PilatesSpace booking",

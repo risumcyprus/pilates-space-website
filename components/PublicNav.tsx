@@ -55,19 +55,21 @@ export function PublicNav() {
         <Link href="/" className="inline-flex shrink-0 items-center justify-center overflow-visible rounded-[18px] pr-1 sm:pr-0">
           <>
             <Image
-              src="/logo.png"
+              src="/pilates-space-mark.svg"
               alt="Pilates Space"
-              width={188}
-              height={188}
-              className="h-[2.75rem] w-auto opacity-95 sm:hidden"
+              width={1024}
+              height={1024}
+              className="h-[2.75rem] w-auto sm:hidden"
+              unoptimized
               priority
             />
             <Image
-              src="/brand.png"
+              src="/pilates-space-logo.svg"
               alt="Pilates Space"
-              width={340}
-              height={83}
-              className="relative top-0.5 hidden h-[3.25rem] w-auto opacity-95 sm:block lg:h-[3.55rem]"
+              width={1014}
+              height={166}
+              className="hidden h-[2.5rem] w-auto sm:block lg:h-[2.75rem]"
+              unoptimized
               priority
             />
           </>

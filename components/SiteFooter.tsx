@@ -15,7 +15,7 @@ export function SiteFooter() {
           <span>{t.footer.company}</span>
           <span className="text-[0.65rem] text-zinc-400">{t.footer.registration}</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <a
             href={instagramHref}
             target="_blank"
@@ -29,6 +29,11 @@ export function SiteFooter() {
           <Link href="/policies" className="hover:text-zinc-800">
             {t.footer.policies}
           </Link>
+          {t.footer.legal.map((link) => (
+            <Link key={link.href} href={link.href} className="hover:text-zinc-800">
+              {link.title}
+            </Link>
+          ))}
           <span>{t.footer.copy}</span>
         </div>
       </div>
