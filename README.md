@@ -47,5 +47,3 @@ npm run dev
 npm run lint
 npm run build
 ```
-
-Google Tag Manager is injected globally from `app/layout.tsx` with container ID `GTM-PBCQ9VV8`.
