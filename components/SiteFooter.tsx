@@ -26,9 +26,6 @@ export function SiteFooter() {
             <Instagram className="h-4 w-4" />
             <span>Instagram</span>
           </a>
-          <Link href="/policies" className="hover:text-zinc-800">
-            {t.footer.policies}
-          </Link>
           {t.footer.legal.map((link) => (
             <Link key={link.href} href={link.href} className="hover:text-zinc-800">
               {link.title}

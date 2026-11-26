@@ -9,12 +9,16 @@ import { translations, type Locale } from "@/lib/i18n";
  * one "# " title, "## " headings, top-level "- " bullets, paragraphs and **bold**.
  * Anything else throws at build time, so a new version of a text can never be
  * rendered silently wrong.
+ *
+ * Mentions of the other legal documents become links (LINK_PHRASES below). Links
+ * are only added around existing words: loadLegalDocument() serialises the result
+ * back to Markdown and throws unless it is byte-identical to the source file.
  */
 
 export const LEGAL_SLUGS = ["terms", "privacy", "waiver", "informed-consent", "marketing-consent"] as const;
 export type LegalSlug = (typeof LEGAL_SLUGS)[number];
 
-export type LegalInline = { text: string; bold: boolean };
+export type LegalInline = { text: string; bold: boolean; href?: string };
 export type LegalBlock =
   | { type: "h2"; content: LegalInline[] }
   | { type: "p"; content: LegalInline[] }
@@ -112,6 +116,96 @@ export function parseLegalMarkdown(source: string, file: string): LegalDocumentD
   return { title, blocks };
 }
 
+/**
+ * Exact phrases (as written in the texts, including Russian case forms) that link
+ * to another document. Never applied to the title or "## " headings, and a
+ * document never links to itself.
+ */
+const LINK_PHRASES: Record<Locale, { phrase: string; href: `/${LegalSlug}` }[]> = {
+  en: [
+    { phrase: "Terms & Conditions", href: "/terms" },
+    { phrase: "Privacy Policy", href: "/privacy" },
+    { phrase: "Liability Waiver", href: "/waiver" },
+    { phrase: "Informed Consent", href: "/informed-consent" },
+    { phrase: "Marketing Communications Consent", href: "/marketing-consent" },
+  ],
+  ru: [
+    { phrase: "Условия обслуживания", href: "/terms" },
+    { phrase: "Условиях обслуживания (Terms & Conditions)", href: "/terms" },
+    { phrase: "Политикой конфиденциальности", href: "/privacy" },
+    { phrase: "Политике конфиденциальности", href: "/privacy" },
+    { phrase: "Отказ от ответственности", href: "/waiver" },
+    { phrase: "Отказе от ответственности", href: "/waiver" },
+    { phrase: "Отказом от ответственности", href: "/waiver" },
+    { phrase: "Информированное согласие", href: "/informed-consent" },
+    { phrase: "Информированного согласия", href: "/informed-consent" },
+    { phrase: "Согласие на маркетинговые сообщения", href: "/marketing-consent" },
+  ],
+};
+
+function linkMatcher(locale: Locale): RegExp {
+  const alternatives = [...LINK_PHRASES[locale]]
+    .sort((a, b) => b.phrase.length - a.phrase.length) // longest match wins
+    .map(({ phrase }) => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  // Whole phrases only: no letter or digit directly before or after.
+  return new RegExp(`(?<![\\p{L}\\p{N}])(?:${alternatives.join("|")})(?![\\p{L}\\p{N}])`, "gu");
+}
+
+function addLinks(runs: LegalInline[], locale: Locale, slug: LegalSlug): LegalInline[] {
+  const matcher = linkMatcher(locale);
+  const hrefFor = new Map(LINK_PHRASES[locale].map(({ phrase, href }) => [phrase, href]));
+
+  return runs.flatMap((run) => {
+    const out: LegalInline[] = [];
+    let last = 0;
+    for (const match of run.text.matchAll(matcher)) {
+      const href = hrefFor.get(match[0]);
+      if (!href || href === `/${slug}`) continue;
+      const start = match.index;
+      if (start > last) out.push({ text: run.text.slice(last, start), bold: run.bold });
+      out.push({ text: match[0], bold: run.bold, href });
+      last = start + match[0].length;
+    }
+    if (last < run.text.length) out.push({ text: run.text.slice(last), bold: run.bold });
+    return out;
+  });
+}
+
+function withLinks(doc: LegalDocumentData, locale: Locale, slug: LegalSlug): LegalDocumentData {
+  return {
+    title: doc.title,
+    blocks: doc.blocks.map((block): LegalBlock => {
+      if (block.type === "p") return { type: "p", content: addLinks(block.content, locale, slug) };
+      if (block.type === "ul") return { type: "ul", items: block.items.map((item) => addLinks(item, locale, slug)) };
+      return block; // headings are never linked
+    }),
+  };
+}
+
+/** Serialises a parsed document back to Markdown (links are ignored: they add no text). */
+export function serializeLegalMarkdown(doc: LegalDocumentData): string {
+  const inline = (runs: LegalInline[]) => {
+    let out = "";
+    let bold = false;
+    for (const run of runs) {
+      if (run.bold !== bold) {
+        out += "**";
+        bold = run.bold;
+      }
+      out += run.text;
+    }
+    return bold ? `${out}**` : out;
+  };
+
+  const parts = [`# ${doc.title}`];
+  for (const block of doc.blocks) {
+    if (block.type === "h2") parts.push(`## ${inline(block.content)}`);
+    else if (block.type === "p") parts.push(inline(block.content));
+    else parts.push(block.items.map((item) => `- ${inline(item)}`).join("\n"));
+  }
+  return parts.join("\n\n");
+}
+
 const contentDir = path.join(process.cwd(), "content", "legal");
 
 export function loadLegalDocument(slug: LegalSlug): Record<Locale, LegalDocumentData> {
@@ -119,7 +213,13 @@ export function loadLegalDocument(slug: LegalSlug): Record<Locale, LegalDocument
 
   for (const locale of LOCALES) {
     const file = `${slug}.${locale}.md`;
-    const doc = parseLegalMarkdown(fs.readFileSync(path.join(contentDir, file), "utf8"), file);
+    const source = fs.readFileSync(path.join(contentDir, file), "utf8").replace(/\r\n/g, "\n");
+    const doc = withLinks(parseLegalMarkdown(source, file), locale, slug);
+
+    // The published text must be exactly the source text.
+    if (serializeLegalMarkdown(doc) !== source.replace(/\n$/, "")) {
+      throw new Error(`[legal] ${file}: rendered text differs from the source file`);
+    }
 
     const footerTitle = translations[locale].footer.legal.find((link) => link.href === `/${slug}`)?.title;
     if (footerTitle !== doc.title) {

@@ -9,10 +9,19 @@ type I18nContextValue = {
   t: (typeof translations)[Locale];
 };
 
+// A saved choice wins (localStorage, then the cookie); otherwise English,
+// regardless of the browser language.
 function getPreferredLocale(): Locale {
   const stored = window.localStorage.getItem(localeStorageKey);
   if (stored === "ru" || stored === "en") return stored;
-  return window.navigator.language.toLowerCase().startsWith("ru") ? "ru" : "en";
+
+  const cookie = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(`${localeCookieKey}=`))
+    ?.slice(localeCookieKey.length + 1);
+  if (cookie === "ru" || cookie === "en") return cookie;
+
+  return defaultLocale;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);

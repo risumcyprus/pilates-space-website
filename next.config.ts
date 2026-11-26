@@ -2,7 +2,12 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      // /policies (Studio rules) was retired in favour of the Terms & Conditions.
+      { source: "/policies", destination: "/terms", permanent: true },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

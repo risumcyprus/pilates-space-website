@@ -1,23 +1,35 @@
 "use client";
 
+import Link from "next/link";
 import { PublicNav } from "@/components/PublicNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { useI18n } from "@/components/LanguageProvider";
 import type { Locale } from "@/lib/i18n";
 import type { LegalDocumentData, LegalInline } from "@/lib/legal";
 
+const linkClass =
+  "underline decoration-zinc-300 underline-offset-2 transition-colors hover:text-zinc-900 hover:decoration-zinc-900";
+
 function Inline({ content }: { content: LegalInline[] }) {
   return (
     <>
-      {content.map((run, index) =>
-        run.bold ? (
-          <strong key={index} className="font-semibold text-zinc-900">
+      {content.map((run, index) => {
+        const text = run.href ? (
+          <Link href={run.href} className={linkClass}>
             {run.text}
+          </Link>
+        ) : (
+          run.text
+        );
+
+        return run.bold ? (
+          <strong key={index} className="font-semibold text-zinc-900">
+            {text}
           </strong>
         ) : (
-          <span key={index}>{run.text}</span>
-        ),
-      )}
+          <span key={index}>{text}</span>
+        );
+      })}
     </>
   );
 }
