@@ -5,7 +5,7 @@ import { PublicNav } from "@/components/PublicNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { useI18n } from "@/components/LanguageProvider";
 import type { Locale } from "@/lib/i18n";
-import type { LegalDocumentData, LegalInline } from "@/lib/legal";
+import type { LegalDocumentData, LegalInline, LegalVersion } from "@/lib/legal";
 
 const linkClass =
   "underline decoration-zinc-300 underline-offset-2 transition-colors hover:text-zinc-900 hover:decoration-zinc-900";
@@ -34,9 +34,17 @@ function Inline({ content }: { content: LegalInline[] }) {
   );
 }
 
-export function LegalDocument({ documents }: { documents: Record<Locale, LegalDocumentData> }) {
-  const { locale } = useI18n();
+export function LegalDocument({
+  documents,
+  version,
+}: {
+  documents: Record<Locale, LegalDocumentData>;
+  version: LegalVersion;
+}) {
+  const { locale, t } = useI18n();
   const doc = documents[locale];
+  const [year, month, day] = version.date.split("-").map(Number);
+  const updated = `${day} ${t.legalMeta.months[month - 1]} ${year}`;
 
   return (
     <div className="bg-[#f7f4ef] text-zinc-900 min-h-screen">
@@ -46,6 +54,9 @@ export function LegalDocument({ documents }: { documents: Record<Locale, LegalDo
         <h1 lang={locale} className="text-4xl sm:text-5xl tracking-tight">
           {doc.title}
         </h1>
+        <p lang={locale} className="mt-3 text-sm text-zinc-500">
+          {t.legalMeta.version} {version.version} · {t.legalMeta.updated} {updated}
+        </p>
 
         <article
           lang={locale}

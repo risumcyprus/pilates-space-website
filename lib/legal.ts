@@ -131,7 +131,7 @@ const LINK_PHRASES: Record<Locale, { phrase: string; href: `/${LegalSlug}` }[]> 
   ],
   ru: [
     { phrase: "Условия обслуживания", href: "/terms" },
-    { phrase: "Условиях обслуживания (Terms & Conditions)", href: "/terms" },
+    { phrase: "Условиях обслуживания", href: "/terms" },
     { phrase: "Политикой конфиденциальности", href: "/privacy" },
     { phrase: "Политике конфиденциальности", href: "/privacy" },
     { phrase: "Отказ от ответственности", href: "/waiver" },
@@ -221,10 +221,15 @@ export function loadLegalDocument(slug: LegalSlug): Record<Locale, LegalDocument
       throw new Error(`[legal] ${file}: rendered text differs from the source file`);
     }
 
-    const footerTitle = translations[locale].footer.legal.find((link) => link.href === `/${slug}`)?.title;
-    if (footerTitle !== doc.title) {
+    // Every document must be in the footer. Russian footer labels are the document
+    // titles; English footer labels are separate short names.
+    const footerLabel = translations[locale].footer.legal.find((link) => link.href === `/${slug}`)?.label;
+    if (!footerLabel) {
+      throw new Error(`[legal] ${file}: no footer link for /${slug} in lib/i18n.ts (${locale})`);
+    }
+    if (locale === "ru" && footerLabel !== doc.title) {
       throw new Error(
-        `[legal] ${file}: title "${doc.title}" does not match footer label "${footerTitle}" in lib/i18n.ts`,
+        `[legal] ${file}: title "${doc.title}" does not match Russian footer label "${footerLabel}" in lib/i18n.ts`,
       );
     }
 
@@ -232,6 +237,29 @@ export function loadLegalDocument(slug: LegalSlug): Record<Locale, LegalDocument
   }
 
   return result;
+}
+
+/**
+ * Version and "updated" date of a document (its .en.md and .ru.md together),
+ * computed from Git by scripts/legal-versions.mjs before every build and dev run.
+ */
+export type LegalVersion = { version: number; date: string };
+
+const versionsFile = path.join(process.cwd(), "lib", "legal-versions.generated.json");
+
+export function loadLegalVersion(slug: LegalSlug): LegalVersion {
+  if (!fs.existsSync(versionsFile)) {
+    throw new Error(
+      "[legal] lib/legal-versions.generated.json is missing. It is written by scripts/legal-versions.mjs, " +
+        "which runs automatically before `npm run build` and `npm run dev`.",
+    );
+  }
+  const versions = JSON.parse(fs.readFileSync(versionsFile, "utf8")) as Partial<Record<LegalSlug, LegalVersion>>;
+  const entry = versions[slug];
+  if (!entry || !Number.isInteger(entry.version) || entry.version < 1 || !/^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
+    throw new Error(`[legal] lib/legal-versions.generated.json has no valid entry for "${slug}"`);
+  }
+  return entry;
 }
 
 export function legalPageTitle(slug: LegalSlug): string {

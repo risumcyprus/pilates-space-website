@@ -110,11 +110,19 @@ export const translations = {
       registration: "Registration number: HE 357486",
       copy: "© 2026 Pilates Space",
       legal: [
-        { href: "/terms", title: "Условия обслуживания (Terms & Conditions)" },
-        { href: "/privacy", title: "Политика конфиденциальности (Privacy Policy)" },
-        { href: "/waiver", title: "Отказ от ответственности (Liability Waiver)" },
-        { href: "/informed-consent", title: "Информированное согласие (здоровье и занятия)" },
-        { href: "/marketing-consent", title: "Согласие на маркетинговые сообщения" },
+        { href: "/terms", label: "Условия обслуживания" },
+        { href: "/privacy", label: "Политика конфиденциальности" },
+        { href: "/waiver", label: "Отказ от ответственности" },
+        { href: "/informed-consent", label: "Информированное согласие" },
+        { href: "/marketing-consent", label: "Согласие на маркетинговые сообщения" },
+      ],
+    },
+    legalMeta: {
+      version: "Версия",
+      updated: "Обновлено",
+      months: [
+        "января", "февраля", "марта", "апреля", "мая", "июня",
+        "июля", "августа", "сентября", "октября", "ноября", "декабря",
       ],
     },
     booking: {
@@ -267,11 +275,19 @@ export const translations = {
       registration: "Registration number: HE 357486",
       copy: "© 2026 Pilates Space",
       legal: [
-        { href: "/terms", title: "Terms & Conditions" },
-        { href: "/privacy", title: "Privacy Policy" },
-        { href: "/waiver", title: "Liability Waiver" },
-        { href: "/informed-consent", title: "Informed Consent (Health & Exercise)" },
-        { href: "/marketing-consent", title: "Marketing Communications Consent" },
+        { href: "/terms", label: "Terms & Conditions" },
+        { href: "/privacy", label: "Privacy Policy" },
+        { href: "/waiver", label: "Liability Waiver" },
+        { href: "/informed-consent", label: "Informed Consent" },
+        { href: "/marketing-consent", label: "Marketing Consent" },
+      ],
+    },
+    legalMeta: {
+      version: "Version",
+      updated: "Updated",
+      months: [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
       ],
     },
     booking: {
