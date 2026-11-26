@@ -201,11 +201,12 @@ export default async function WelcomePage() {
           <div className="relative z-10">
             <div className="mx-auto flex w-fit items-center justify-center">
               <Image
-                src="/brand.png"
+                src="/pilates-space-logo.svg"
                 alt="Pilates Space"
-                width={340}
-                height={83}
+                width={1014}
+                height={166}
                 className="h-auto w-[265px] sm:w-[300px]"
+                unoptimized
                 priority
               />
             </div>

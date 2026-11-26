@@ -10,12 +10,21 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-[#e5dbcc] bg-[#f4eee5]">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-10 text-xs uppercase tracking-[0.14em] text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 text-xs capitalize tracking-[0.14em] text-zinc-500 md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col gap-1">
-          <span>{t.footer.company}</span>
+          <span className="whitespace-nowrap">{t.footer.company}</span>
           <span className="text-[0.65rem] text-zinc-400">{t.footer.registration}</span>
         </div>
-        <div className="flex items-center gap-4">
+        <ul className="flex flex-col gap-2">
+          {t.footer.legal.map((link) => (
+            <li key={link.href}>
+              <Link href={link.href} className="hover:text-zinc-800">
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="flex flex-col gap-2 md:items-end">
           <a
             href={instagramHref}
             target="_blank"
@@ -26,9 +35,6 @@ export function SiteFooter() {
             <Instagram className="h-4 w-4" />
             <span>Instagram</span>
           </a>
-          <Link href="/policies" className="hover:text-zinc-800">
-            {t.footer.policies}
-          </Link>
           <span>{t.footer.copy}</span>
         </div>
       </div>
