@@ -1,3 +1,8 @@
+---
+version: 1
+published: 2026-11-27
+---
+
 # Marketing Communications Consent
 
 This document is about Studio news and offers — and nothing else. By ticking the box “**I would like to receive Pilates Space news, promotions and offers — by email, SMS and push notifications**”, you give **Risum Cyprus Limited** (the **Pilates Space** studio, Limassol) your consent to send you such messages.

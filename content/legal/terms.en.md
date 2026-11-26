@@ -1,3 +1,8 @@
+---
+version: 1
+published: 2026-11-27
+---
+
 # Terms & Conditions
 
 ## 1. Who we are and what this document is about

@@ -1,3 +1,8 @@
+---
+version: 1
+published: 2026-11-27
+---
+
 # Privacy Policy
 
 ## 1. Who we are

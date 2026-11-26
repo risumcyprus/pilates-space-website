@@ -4,6 +4,8 @@ import { translations, type Locale } from "@/lib/i18n";
 
 /**
  * Legal documents are published verbatim from content/legal/<slug>.<locale>.md.
+ * Each file starts with a front-matter block (version and published date, set by
+ * hand; see parseLegalFrontMatter), which is stripped before the text is parsed.
  *
  * The parser deliberately supports only the Markdown the approved texts use:
  * one "# " title, "## " headings, top-level "- " bullets, paragraphs and **bold**.
@@ -206,17 +208,55 @@ export function serializeLegalMarkdown(doc: LegalDocumentData): string {
   return parts.join("\n\n");
 }
 
+/** Version and publication date, set by hand in each file's front matter. */
+export type LegalMeta = { version: number; published: string };
+
+const FRONT_MATTER = /^---\nversion: ([1-9]\d*)\npublished: (\d{4})-(\d{2})-(\d{2})\n---\n\n/;
+
+/**
+ * Every legal file starts with exactly:
+ *
+ *   ---
+ *   version: 1
+ *   published: 2026-11-27
+ *   ---
+ *   (blank line)
+ *
+ * Returns the values and the document text after the block.
+ */
+export function parseLegalFrontMatter(source: string, file: string): { meta: LegalMeta; body: string } {
+  const match = source.match(FRONT_MATTER);
+  if (!match) {
+    throw new Error(
+      `[legal] ${file}: missing or malformed front matter. The file must start with exactly:\n` +
+        "---\nversion: <number>\npublished: <YYYY-MM-DD>\n---\n(blank line)",
+    );
+  }
+  const [block, version, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  const published = `${year}-${month}-${day}`;
+  if (date.toISOString().slice(0, 10) !== published) {
+    throw new Error(`[legal] ${file}: published "${published}" is not a valid date`);
+  }
+  return { meta: { version: Number(version), published }, body: source.slice(block.length) };
+}
+
 const contentDir = path.join(process.cwd(), "content", "legal");
 
-export function loadLegalDocument(slug: LegalSlug): Record<Locale, LegalDocumentData> {
-  const result = {} as Record<Locale, LegalDocumentData>;
+export function loadLegalDocument(slug: LegalSlug): { documents: Record<Locale, LegalDocumentData>; meta: LegalMeta } {
+  const documents = {} as Record<Locale, LegalDocumentData>;
+  const metas = {} as Record<Locale, LegalMeta>;
 
   for (const locale of LOCALES) {
     const file = `${slug}.${locale}.md`;
-    const source = fs.readFileSync(path.join(contentDir, file), "utf8").replace(/\r\n/g, "\n");
+    const { meta, body: source } = parseLegalFrontMatter(
+      fs.readFileSync(path.join(contentDir, file), "utf8").replace(/\r\n/g, "\n"),
+      file,
+    );
+    metas[locale] = meta;
     const doc = withLinks(parseLegalMarkdown(source, file), locale, slug);
 
-    // The published text must be exactly the source text.
+    // The published text must be exactly the source text (after the front matter).
     if (serializeLegalMarkdown(doc) !== source.replace(/\n$/, "")) {
       throw new Error(`[legal] ${file}: rendered text differs from the source file`);
     }
@@ -233,35 +273,21 @@ export function loadLegalDocument(slug: LegalSlug): Record<Locale, LegalDocument
       );
     }
 
-    result[locale] = doc;
+    documents[locale] = doc;
   }
 
-  return result;
-}
-
-/**
- * Version and "updated" date of a document (its .en.md and .ru.md together),
- * computed from Git by scripts/legal-versions.mjs before every build and dev run.
- */
-export type LegalVersion = { version: number; date: string };
-
-const versionsFile = path.join(process.cwd(), "lib", "legal-versions.generated.json");
-
-export function loadLegalVersion(slug: LegalSlug): LegalVersion {
-  if (!fs.existsSync(versionsFile)) {
+  // The English and Russian files of a document must carry the same version and date.
+  const { en, ru } = metas;
+  if (en.version !== ru.version || en.published !== ru.published) {
     throw new Error(
-      "[legal] lib/legal-versions.generated.json is missing. It is written by scripts/legal-versions.mjs, " +
-        "which runs automatically before `npm run build` and `npm run dev`.",
+      `[legal] ${slug}: front matter differs between ${slug}.en.md (version ${en.version}, ${en.published}) ` +
+        `and ${slug}.ru.md (version ${ru.version}, ${ru.published})`,
     );
   }
-  const versions = JSON.parse(fs.readFileSync(versionsFile, "utf8")) as Partial<Record<LegalSlug, LegalVersion>>;
-  const entry = versions[slug];
-  if (!entry || !Number.isInteger(entry.version) || entry.version < 1 || !/^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
-    throw new Error(`[legal] lib/legal-versions.generated.json has no valid entry for "${slug}"`);
-  }
-  return entry;
+
+  return { documents, meta: en };
 }
 
 export function legalPageTitle(slug: LegalSlug): string {
-  return `${loadLegalDocument(slug).en.title} | Pilates Space`;
+  return `${loadLegalDocument(slug).documents.en.title} | Pilates Space`;
 }

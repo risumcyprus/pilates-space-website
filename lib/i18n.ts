@@ -119,7 +119,7 @@ export const translations = {
     },
     legalMeta: {
       version: "Версия",
-      updated: "Обновлено",
+      published: "опубликовано",
       months: [
         "января", "февраля", "марта", "апреля", "мая", "июня",
         "июля", "августа", "сентября", "октября", "ноября", "декабря",
@@ -284,7 +284,7 @@ export const translations = {
     },
     legalMeta: {
       version: "Version",
-      updated: "Updated",
+      published: "published",
       months: [
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December",

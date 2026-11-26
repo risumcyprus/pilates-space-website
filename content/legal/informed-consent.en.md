@@ -1,3 +1,8 @@
+---
+version: 1
+published: 2026-11-27
+---
+
 # Informed Consent (Health & Exercise)
 
 ## 1. What this document is

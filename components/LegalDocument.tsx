@@ -5,7 +5,7 @@ import { PublicNav } from "@/components/PublicNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { useI18n } from "@/components/LanguageProvider";
 import type { Locale } from "@/lib/i18n";
-import type { LegalDocumentData, LegalInline, LegalVersion } from "@/lib/legal";
+import type { LegalDocumentData, LegalInline, LegalMeta } from "@/lib/legal";
 
 const linkClass =
   "underline decoration-zinc-300 underline-offset-2 transition-colors hover:text-zinc-900 hover:decoration-zinc-900";
@@ -36,15 +36,15 @@ function Inline({ content }: { content: LegalInline[] }) {
 
 export function LegalDocument({
   documents,
-  version,
+  meta,
 }: {
   documents: Record<Locale, LegalDocumentData>;
-  version: LegalVersion;
+  meta: LegalMeta;
 }) {
   const { locale, t } = useI18n();
   const doc = documents[locale];
-  const [year, month, day] = version.date.split("-").map(Number);
-  const updated = `${day} ${t.legalMeta.months[month - 1]} ${year}`;
+  const [year, month, day] = meta.published.split("-").map(Number);
+  const published = `${day} ${t.legalMeta.months[month - 1]} ${year}`;
 
   return (
     <div className="bg-[#f7f4ef] text-zinc-900 min-h-screen">
@@ -55,7 +55,7 @@ export function LegalDocument({
           {doc.title}
         </h1>
         <p lang={locale} className="mt-3 text-sm text-zinc-500">
-          {t.legalMeta.version} {version.version} · {t.legalMeta.updated} {updated}
+          {t.legalMeta.version} {meta.version} · {t.legalMeta.published} {published}
         </p>
 
         <article
